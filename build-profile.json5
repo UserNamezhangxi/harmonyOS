@@ -26,8 +26,44 @@
   },
   "modules": [
     {
-      "name": "entry",
-      "srcPath": "./entry",
+      "name": "default",
+      "srcPath": "./product/default",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "common",
+      "srcPath": "./common",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "homelibrary",
+      "srcPath": "./feature/homelibrary",
+    },
+    {
+      "name": "loginLibrary",
+      "srcPath": "./feature/loginLibrary",
+    },
+    {
+      "name": "orderLibrary",
+      "srcPath": "./feature/orderLibrary",
+    },
+    {
+      "name": "watch",
+      "srcPath": "./product/watch",
       "targets": [
         {
           "name": "default",

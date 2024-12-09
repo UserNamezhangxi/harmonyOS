@@ -1831,3 +1831,165 @@ context 获取
 ![](image/7.png)
 
 ![](image/8.png)
+
+时间选择器组件
+
+
+
+# @LocalStorageLink 变量装饰器与 LocalStorage
+
+1、1个EntryAbility 中 多个页面可以实现数据共享，不同的EntryAbility 中无法实现数据共享。
+
+2、一个页重定义了存储的的数据，其他的子组件中都可以共享这个数据
+
+```js
+
+// 创建新实例并使用给定对象初始化
+let para: Record<string, number> = { 'PropA': 47 };
+let storage: LocalStorage = new LocalStorage(para);
+
+// let storage = new LocalStorage();
+// storage.setOrCreate('PropA', 48);
+
+@Component
+struct MyComm {
+  // @LocalStorageLink变量装饰器与LocalStorage中的'PropA'属性建立双向绑定
+  @LocalStorageLink('PropA') storageLink: number = 1;
+  build() {
+    Text("子组件 ：" + this.storageLink.toString()).onClick(()=>{
+      this.storageLink = 100
+    })
+  }
+}
+
+
+@Entry(storage) // 此处给页面Entry 传递 storage对象
+@Component
+struct Index {
+  // @StorageLink变量装饰器与AppStorage配合使用
+  // @LocalStorageLink与LocalStorage配合使用
+  @LocalStorageLink('PropA') localStorageLink: number = 1;
+
+  build() {
+    Column({ space: 10 }) {
+      Text(this.localStorageLink.toString()).fontSize(30)
+      MyComm()
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+```
+
+在UiAbility 中 定义，其他同一个 Ability 页面都都可以使用
+
+1、在 EntryAbility 中定义
+
+2、在页面通过  let storage = LocalStorage.getShared();
+
+3、使用 @Entry(storage) 
+
+4、@LocalStorageLink('param') localStorageLink: number = 1;
+
+![](image/12.png)
+
+![](image/13.png)
+
+# 从UI内部使用AppStorage
+
+![](image/14.png)
+
+注意：官方 ：
+
+不建议借助@StorageLink的双向同步机制实现事件通知。不建议开发者使用@StorageLink和AppStorage的双向同步的机制来实现事件通知，因为AppStorage中的变量可能绑定在多个不同页面的组件中，但事件通知则不一定需要通知到所有的这些组件。并且，当这些@StorageLink装饰的变量在UI中使用时，会触发UI刷新，带来不必要的性能影响。
+
+#  创建common模块
+
+1、
+
+![](image/15.png)
+
+2、
+
+![](image/16.png)
+
+
+
+3、common模块是
+
+```js
+{
+  "module": {
+    "name": "common",
+    "type": "shared", // 此处是shared
+    "description": "$string:shared_desc",
+    "deviceTypes": [
+      "phone",
+      "tablet",
+      "2in1",
+      "car"
+    ],
+    "deliveryWithInstall": true,
+    "pages": "$profile:main_pages"
+  }
+}
+```
+
+4、暴漏公共代码
+
+![](image/17.png)
+
+5、entry模块加载common
+
+common是独立模块，其他需要的模块将common引入到自己的模块中
+
+![](image/18.png)
+
+run完之后
+
+ ![](image/19.png)
+
+使用
+
+![](image/20.png)
+
+# HAP HSP HAR 工程管理
+
+![](image/21.png)
+
+
+
+# 媒体查询功能
+
+```js
+import { mediaquery } from '@kit.ArkUI';
+
+@Entry()
+@Component
+struct Index {
+
+   // 检测屏幕是否是横竖屏
+  listener: mediaquery.MediaQueryListener = mediaquery.matchMediaSync('(orientation: landscape)');
+
+  onPortrait(mediaQueryResult: mediaquery.MediaQueryResult) {
+    if (mediaQueryResult.matches as boolean) {
+      console.log("橫屏")
+    } else {
+      console.log("竪屏")
+    }
+  }
+
+  aboutToAppear(): void {
+    this.listener.on('change', this.onPortrait);
+  }
+
+  build() {
+    Column({ space: 10 }) {
+      Text('媒体查询 ').fontSize(30)
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
