@@ -24,7 +24,7 @@ struct Index {
 
 # Grid 布局
 
-```json
+```js
 @Entry
 @Component
 struct Index {
@@ -1109,7 +1109,7 @@ struct Index {
 
 # 变量修饰符
 
-![](image\9.png)
+![](image/9.png)
 
 # @Prop 子组件改父组件内容
 
@@ -1772,17 +1772,17 @@ struct Page1 {
 
 ```
 
-![](image\11.png)
+![](image/11.png)
 
-![](image\10.png)
+![](image/10.png)
 
 
 
 # Stage 模型 - app.json5 配置应用
 
-![](image\1.png)
+![](image/1.png)
 
-![](image\2.png)
+![](image/2.png)
 
 Stage模型UiAbility
 
@@ -1806,28 +1806,28 @@ Stage模型UiAbility
 
 # Abaility 生命周期
 
-![](image\3.png)
+![](image/3.png)
 
 
 
 # Ability模块之间的关系
 
-![](image\6.png)
+![](image/6.png)
 
 
 
 # 启动另一个Ability
 
-![](image\4.png)
+![](image/4.png)
 
 context 获取
 
-![](image\5.png)
+![](image/5.png)
 
 
 
 # 拉起另一个模块的 ability
 
-![](image\7.png)
+![](image/7.png)
 
-![](image\8.png)
+![](image/8.png)
