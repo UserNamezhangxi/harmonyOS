@@ -1824,17 +1824,120 @@ context 获取
 
 ![](image/5.png)
 
+使用：默认Ability 启动 一个页面中 例如 EntryAbility 中 通过 want 启动另一个Ability 的页面
+
+```js
+EntryAbility ---> Index.ets
+
+let context = getContext(this) as common.UIAbilityContext
+let want:Want = {
+  deviceId:"",
+  bundleName: "com.example.myapplication",
+  abilityName:'WpsAbility',
+  parameters: {
+    instanceKey:`id_${this.index++}`
+  }
+}
+context.startAbility(want,(err) => {
+  console.log('tag',"err " + err)
+})
+
+拉起WpsAbility
+```
+
+
+
+```js
+import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { hilog } from '@kit.PerformanceAnalysisKit';
+import { window } from '@kit.ArkUI';
+
+export default class WpsAbility extends UIAbility {
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onCreate');
+  }
+
+  onDestroy(): void {
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onDestroy');
+  }
+
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+   
+    // 拉起page4页面
+    windowStage.loadContent('pages/Page4', (err) => {
+      if (err.code) {
+        hilog.error(0x0000, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
+        return;
+      }
+      hilog.info(0x0000, 'testTag', 'Succeeded in loading the content.');
+    });
+  }
+
+  onWindowStageDestroy(): void {
+    // Main window is destroyed, release UI related resources
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+  }
+
+  onForeground(): void {
+    // Ability has brought to foreground
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onForeground');
+  }
+
+  onBackground(): void {
+    // Ability has back to background
+    hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onBackground');
+  }
+}
+
+```
+
+另外如果 
+
+specified启动模式
+
+specified启动模式为指定实例模式，针对一些特殊场景使用（例如文档应用中每次新建文档希望都能新建一个文档实例，重复打开一个已保存的文档希望打开的都是同一个文档实例）。
+
+要将启动的 WPSAbility 将 [module.json5配置文件 ](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides-V5/module-configuration-file-V5)的launchType字段配置为specified。
+
+```js
+{
+  "module": {
+    // ...
+    "abilities": [
+      {
+        "launchType": "specified",
+        // ...
+      }
+    ]
+  }
+}
+```
+
+配置Ability 容器： 在对应的 module.json5
+
+```js
+"srcEntry": './ets/abilityStage/MyAbilityStage.ets',
+```
+
+![](image/22.png)
+
 
 
 # 拉起另一个模块的 ability
+
+需要在当前模块加入 要引入的模块
 
 ![](image/7.png)
 
 ![](image/8.png)
 
-时间选择器组件
 
 
+![应用层级图](image/25.png)
+
+page 里面 是 Component，   Component  里就是各个组件了 
 
 # @LocalStorageLink 变量装饰器与 LocalStorage
 
@@ -1993,3 +2096,220 @@ struct Index {
   }
 }
 ```
+
+# @Watch 装饰器使用
+
+```js
+@Observed
+class Product {
+  isSelect: boolean = false
+  name: string = ''
+
+  constructor(isSelect: boolean, name: string) {
+    this.isSelect = isSelect;
+    this.name = name;
+  }
+}
+
+@Component
+struct Item {
+  @ObjectLink item: Product
+
+  build() {
+    ListItem() {
+      Row() {
+        Checkbox().select(this.item.isSelect)
+        Text(this.item.name).fontSize(40)
+      }
+    }
+  }
+}
+
+@Entry()
+@Component
+struct Index {
+  @State @Watch('isSelectAll') isSelectAllProduct: boolean = false
+  @State datas: Product[] = [
+    new Product(false, 'AAA'),
+    new Product(false, 'BBB'),
+    new Product(false, 'CCC'),
+  ]
+  @State index: number = 0
+
+  isSelectAll() {
+    for (let item of this.datas) {
+      item.isSelect = !this.isSelectAllProduct
+    }
+  }
+
+  build() {
+    Column({ space: 10 }) {
+      Text('商品页面')
+      Button('全选').onClick(() => {
+        this.isSelectAllProduct = !this.isSelectAllProduct
+      })
+      List({ space: 20 }) {
+        ForEach(this.datas, (item: Product, index: number) => {
+          Item({
+            item: item
+          })
+        }, (item: number) => `${item}`)
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+
+```
+
+# KvStore 封装
+
+在common中进行暴露
+
+```js
+import { distributedKVStore } from '@kit.ArkData';
+import { BusinessError } from '@kit.BasicServicesKit';
+
+class KvStore {
+  private kvManager: distributedKVStore.KVManager | undefined = undefined;
+  private kvStore: distributedKVStore.SingleKVStore | undefined = undefined;
+
+  init(context: Context) {
+    const kvManagerConfig: distributedKVStore.KVManagerConfig = {
+      context: context,
+      bundleName: 'com.example.myapplication'
+    };
+    try {
+      // 创建KVManager实例
+      this.kvManager = distributedKVStore.createKVManager(kvManagerConfig);
+      console.info('Succeeded in creating KVManager.');
+      // 继续创建获取数据库
+    } catch (e) {
+      let error = e as BusinessError;
+      console.error(`Failed to create KVManager. Code:${error.code},message:${error.message}`);
+    }
+
+    if (this.kvManager === undefined) {
+      console.error('kvManager init err!')
+      return
+    }
+
+    //进行后续操作
+    this.kvManager = this.kvManager as distributedKVStore.KVManager;
+
+    try {
+      const options: distributedKVStore.Options = {
+        createIfMissing: true,
+        encrypt: false,
+        backup: false,
+        autoSync: false,
+        // kvStoreType不填时，默认创建多设备协同数据库
+        kvStoreType: distributedKVStore.KVStoreType.SINGLE_VERSION,
+        // 多设备协同数据库：kvStoreType: distributedKVStore.KVStoreType.DEVICE_COLLABORATION,
+        securityLevel: distributedKVStore.SecurityLevel.S1
+      };
+
+      this.kvManager.getKVStore<distributedKVStore.SingleKVStore>('storeId', options,
+        (err, store: distributedKVStore.SingleKVStore) => {
+          if (err) {
+            console.error(`Failed to get KVStore: Code:${err.code},message:${err.message}`);
+            return;
+          }
+          console.info('Succeeded in getting KVStore.');
+          this.kvStore = store;
+          // 请确保获取到键值数据库实例后，再进行相关数据操作
+        });
+    } catch (e) {
+      let error = e as BusinessError;
+      console.error(`An unexpected error occurred. Code:${error.code},message:${error.message}`);
+    }
+  }
+
+  putKV(key: string, value: string | number | boolean | Uint8Array) {
+    if (this.kvStore === undefined) {
+      console.error('putKV kvStore init err!')
+      return
+    }
+    try {
+      this.kvStore.put(key, value, (err) => {
+        if (err !== undefined) {
+          console.error(`Failed to put data. Code:${err.code},message:${err.message}`);
+          return;
+        }
+        console.info('Succeeded in putting data.');
+      });
+    } catch (e) {
+      let error = e as BusinessError;
+      console.error(`An unexpected error occurred. Code:${error.code},message:${error.message}`);
+    }
+  }
+
+  getKv(key: string) {
+    return new Promise((resolve: (value?: string | number | boolean | Uint8Array) => void,
+      reject: (value?: string) => void) => {
+      if (this.kvStore === undefined) {
+        console.error('getKv kvStore init err!')
+        reject('getKv kvStore init err!')
+        return
+      }
+      try {
+        this.kvStore.get(key, (err, data) => {
+          if (err != undefined) {
+            console.error(`Failed to get data. Code:${err.code},message:${err.message}`);
+            reject(`Failed to get data. Code:${err.code},message:${err.message}`)
+            return;
+          }
+          console.info(`Succeeded in getting data. Data:${data}`);
+          resolve(data)
+        });
+      } catch (e) {
+        let error = e as BusinessError;
+        console.error(`Failed to get data. Code:${error.code},message:${error.message}`);
+        reject(`Failed to get data. Code:${error.code},message:${error.message}`)
+      }
+    })
+  }
+}
+
+const kvStore:KvStore = new KvStore()
+export {kvStore}
+
+```
+
+在依赖的包中加入common 模块
+
+![](image/23.png)
+
+![](image/24.png)
+
+```js
+import { kvStore } from 'common/src/main/ets/utils/KvStore';
+
+@Entry()
+@Component
+struct Index {
+  build() {
+    Column({ space: 10 }) {
+      Text('kvStore 案例')
+      Button('存储数据').onClick(() => {
+        kvStore.putKV('username', 'zhangxi')
+        kvStore.putKV('count', 1)
+      })
+      Button('获取数据').onClick(() => {
+        kvStore.getKv('username').then(res => {
+          console.log('获取数据 username ' + res)
+        })
+        kvStore.getKv('count').then(res => {
+          console.log('获取数据 count ' + res)
+        })
+      })
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+
+

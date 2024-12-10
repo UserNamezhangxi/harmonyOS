@@ -1,8 +1,10 @@
 {
   "src": [
-    "pages/Index",
+    "pages/Index-startAbility",
     "pages/Page1",
     "pages/Page2",
-    "pages/Page3"
+    "pages/Page3",
+    "pages/Page4",
+    "pages/Index"
   ]
 }

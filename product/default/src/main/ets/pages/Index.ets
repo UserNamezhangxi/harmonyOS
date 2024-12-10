@@ -1,27 +1,23 @@
-import { mediaquery } from '@kit.ArkUI';
+import { kvStore } from 'common/src/main/ets/utils/KvStore';
 
 @Entry()
 @Component
 struct Index {
-
-   // 检测屏幕是否是横竖屏
-  listener: mediaquery.MediaQueryListener = mediaquery.matchMediaSync('(orientation: landscape)');
-
-  onPortrait(mediaQueryResult: mediaquery.MediaQueryResult) {
-    if (mediaQueryResult.matches as boolean) {
-      console.log("橫屏")
-    } else {
-      console.log("竪屏")
-    }
-  }
-
-  aboutToAppear(): void {
-    this.listener.on('change', this.onPortrait);
-  }
-
   build() {
     Column({ space: 10 }) {
-      Text('媒体查询 ').fontSize(30)
+      Text('kvStore 案例')
+      Button('存储数据').onClick(() => {
+        kvStore.putKV('username', 'zhangxi')
+        kvStore.putKV('count', 1)
+      })
+      Button('获取数据').onClick(() => {
+        kvStore.getKv('username').then(res => {
+          console.log('获取数据 username ' + res)
+        })
+        kvStore.getKv('count').then(res => {
+          console.log('获取数据 count ' + res)
+        })
+      })
     }
     .width('100%')
     .height('100%')
