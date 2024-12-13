@@ -2,6 +2,8 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { kvStore } from 'common/src/main/ets/utils/KvStore';
+import { dBUtils } from 'common/src/main/ets/utils/DbUtils';
+
 
 export default class EntryAbility extends UIAbility {
 
@@ -21,7 +23,7 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     // Main window is created, set main page for this ability
     hilog.info(0x0000, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
-
+    dBUtils.init(this.context, "employee")
     windowStage.loadContent('pages/Index', this.storage, (err) => {
       if (err.code) {
         hilog.error(0x0000, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
